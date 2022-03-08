@@ -1,10 +1,12 @@
 from bs4 import BeautifulSoup
+from bs4 import element
 import requests
 import slackweb
 
+base_url = "https://pitchfork.com/"
+review_list_url = base_url + "reviews/albums/"
+
 def main():
-    base_url = "https://pitchfork.com/"
-    review_list_url = base_url + "reviews/albums/"
     r = requests.get(review_list_url)
 
     soup = BeautifulSoup(r.text)
@@ -14,35 +16,76 @@ def main():
     reviews_buff = ""
 
     for item in reviews:
-        # print(item)
-        link = item.find("a", "review__link")["href"]
-        link_url = base_url + link
-
+        link = get_link(item)
+        artists = get_artists(item)
         artwork_path = item.find("div", "review__artwork").find("img")["src"]
-        artists = item.find("ul", "review__title-artist").string
         album_title = item.find("h2", "review__title-album").get_text()
-        genres = item.find_all("li", "genre-list__item")
-        genre_text = ""
-        for genre in genres:
-            genre_text = genre_text + genre.string + " "
-
-        authors = item.find("ul", "authors").find_all("li")
-        authors_text = ""
-        for author in authors:
-            # TODO 汚い
-            author_name = author.find("a").get_text().replace("by: ", "")
-            authors_text = authors_text + author_name
-
+        genres = get_genres(item)
+        authors = get_authors(item)
         review_date = item.find("time", "pub-date")["datetime"]
-
-        print([album_title, artists, genre_text, authors_text, review_date, link_url, artwork_path])
-        reviews_buff = reviews_buff + ", ".join([album_title, artists, genre_text, authors_text, review_date, link_url, artwork_path]) + "\n"
 
         # detail = requests.get(link_url)
 
-    slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
-    slack.notify(text=reviews_buff)
+        attachments = []
+        attachment = {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": album_title
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"by: {artists}"
+                    }
+                }
+            ]
+        }
 
+        attachments.append(attachment)
+        slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+        slack.notify(attachments=attachments)
+        return
+
+    # slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+    # slack.notify(text=reviews_buff)
+
+def get_link(item: element.Tag):
+    link = item.find("a", "review__link")["href"]
+    link_url = base_url + link
+
+def get_artists(item: element.Tag):
+    artists = item.find("ul", "review__title-artist").find_all("li")
+    artists_text = ""
+    for i, artist in enumerate(artists):
+        if i > 0:
+            artists_text = artists_text + ", "
+        artists_text = artists_text + artist.string
+
+    return artists_text
+
+def get_genres(item: element.Tag):
+    genres = item.find_all("li", "genre-list__item")
+    genre_text = ""
+    for i, genre in enumerate(genres):
+        if i > 0:
+            genre_text = genre_text + ", "
+        genre_text = genre_text + genre.string
+
+    return genre_text
+
+def get_authors(item: element.Tag):
+    authors = item.find("ul", "authors").find_all("li")
+    authors_text = ""
+    for author in authors:
+        author_name = author.find("a").get_text().replace("by: ", "")
+        authors_text = authors_text + author_name
+
+    return authors_text
         
 if __name__ == "__main__":
     main()
