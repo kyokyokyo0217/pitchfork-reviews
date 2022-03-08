@@ -3,8 +3,8 @@ from bs4 import element
 import requests
 import slackweb
 
-base_url = "https://pitchfork.com/"
-review_list_url = base_url + "reviews/albums/"
+base_url = "https://pitchfork.com"
+review_list_url = base_url + "/reviews/albums/"
 
 def main():
     r = requests.get(review_list_url)
@@ -29,21 +29,32 @@ def main():
         attachments = []
         attachment = {
             "blocks": [
+		        {
+		        	"type": "section",
+		        	"text": {
+		        		"type": "mrkdwn",
+		        		"text": f"*{album_title}* \n by: {artists} \n genre: {genres} \n reviewd by: {authors} \n reviewed on: {review_date}"
+		        	},
+		        	"accessory": {
+		        		"type": "image",
+		        		"image_url": artwork_path,
+		        		"alt_text": "alt text for image"
+		        	}
+		        },
                 {
-                    "type": "header",
-                    "text": {
-                        "type": "plain_text",
-                        "text": album_title
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"by: {artists}"
-                    }
+                    "type": "actions",
+                    "elements": [
+                        {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Go Review Page"
+                        },
+                        "url": link
+                        }
+                    ]
                 }
-            ]
+	        ]
         }
 
         attachments.append(attachment)
@@ -57,6 +68,7 @@ def main():
 def get_link(item: element.Tag):
     link = item.find("a", "review__link")["href"]
     link_url = base_url + link
+    return link_url
 
 def get_artists(item: element.Tag):
     artists = item.find("ul", "review__title-artist").find_all("li")
