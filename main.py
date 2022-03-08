@@ -8,12 +8,8 @@ review_list_url = base_url + "/reviews/albums/"
 
 def main():
     r = requests.get(review_list_url)
-
     soup = BeautifulSoup(r.text)
-
     reviews = soup.find_all("div", "review")
-
-    reviews_buff = ""
 
     for item in reviews:
         link = get_link(item)
@@ -60,10 +56,6 @@ def main():
         attachments.append(attachment)
         slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
         slack.notify(attachments=attachments)
-        return
-
-    # slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
-    # slack.notify(text=reviews_buff)
 
 def get_link(item: element.Tag):
     link = item.find("a", "review__link")["href"]
