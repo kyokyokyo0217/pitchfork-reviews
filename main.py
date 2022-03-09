@@ -2,6 +2,10 @@ from bs4 import BeautifulSoup
 from bs4 import element
 import requests
 import slackweb
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
+slack_url = config["SLACK_WEBHOOK_URL"] 
 
 base_url = "https://pitchfork.com"
 review_list_url = base_url + "/reviews/albums/"
@@ -54,7 +58,7 @@ def main():
         }
 
         attachments.append(attachment)
-        slack = slackweb.Slack(url="https://hooks.slack.com/services/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")
+        slack = slackweb.Slack(url=slack_url)
         slack.notify(attachments=attachments)
 
 def get_link(item: element.Tag):
