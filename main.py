@@ -3,6 +3,8 @@ from bs4 import element
 import requests
 import slackweb
 from dotenv import dotenv_values
+import datetime
+from dateutil.parser import *
 
 config = dotenv_values(".env")
 slack_url = config["SLACK_WEBHOOK_URL"] 
@@ -11,6 +13,7 @@ base_url = "https://pitchfork.com"
 review_list_url = base_url + "/reviews/albums/"
 
 def main():
+    current_datetime = datetime.datetime.now()
     r = requests.get(review_list_url)
     soup = BeautifulSoup(r.text)
     reviews = soup.find_all("div", "review")
@@ -23,6 +26,11 @@ def main():
         genres = get_genres(item)
         authors = get_authors(item)
         review_date = item.find("time", "pub-date")["datetime"]
+        time_difference = current_datetime- parse(review_date)
+
+        if time_difference.days > 0:
+            print(f"old review: {review_date}")
+            continue
 
         # detail = requests.get(link_url)
 
