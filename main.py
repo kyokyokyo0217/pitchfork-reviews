@@ -13,7 +13,7 @@ base_url = "https://pitchfork.com"
 review_list_url = base_url + "/reviews/albums/"
 
 def main():
-    current_datetime = datetime.datetime.now()
+    current_datetime = datetime.datetime.utcnow()
     r = requests.get(review_list_url)
     soup = BeautifulSoup(r.text)
     reviews = soup.find_all("div", "review")
