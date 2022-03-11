@@ -25,12 +25,13 @@ def main():
         album_title = item.find("h2", "review__title-album").get_text()
         genres = get_genres(item)
         authors = get_authors(item)
-        review_date = item.find("time", "pub-date")["datetime"]
-        time_difference = current_datetime- parse(review_date)
-
+        review_datetime = parse(item.find("time", "pub-date")["datetime"])
+        time_difference = current_datetime- review_datetime
         if time_difference.days > 0:
-            print(f"old review: {review_date}")
+            print(f"old review: {review_datetime}")
             continue
+
+        formatted_revied_date = review_datetime.strftime("%B %d, %Y")
 
         # detail = requests.get(link_url)
 
@@ -41,7 +42,7 @@ def main():
 		        	"type": "section",
 		        	"text": {
 		        		"type": "mrkdwn",
-		        		"text": f"*{album_title}* \n by: {artists} \n genre: {genres} \n reviewd by: {authors} \n reviewed on: {review_date}"
+		        		"text": f"*{album_title}* \n by: {artists} \n genre: {genres} \n reviewd by: {authors} \n reviewed on: {formatted_revied_date}"
 		        	},
 		        	"accessory": {
 		        		"type": "image",
