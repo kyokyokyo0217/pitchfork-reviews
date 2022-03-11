@@ -42,7 +42,7 @@ def main():
 		        	"type": "section",
 		        	"text": {
 		        		"type": "mrkdwn",
-		        		"text": f"*{album_title}* \n by: {artists} \n genre: {genres} \n reviewd by: {authors} \n reviewed on: {formatted_revied_date}"
+		        		"text": f"*{album_title}* \n*ARTIST*: {artists} \n*GENRE*: {genres}\n*REVIEWED BY*: {authors} \n*REVIEWED*: {formatted_revied_date}"
 		        	},
 		        	"accessory": {
 		        		"type": "image",
