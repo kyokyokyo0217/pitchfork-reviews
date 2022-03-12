@@ -5,104 +5,113 @@ import slackweb
 from dotenv import dotenv_values
 import datetime
 from dateutil.parser import *
+import json
+import re
 
 config = dotenv_values(".env")
 slack_url = config["SLACK_WEBHOOK_URL"] 
 
 base_url = "https://pitchfork.com"
 review_list_url = base_url + "/reviews/albums/"
+pattern = r"window.App="
 
 def main():
     current_datetime = datetime.datetime.utcnow()
     r = requests.get(review_list_url)
     soup = BeautifulSoup(r.text)
-    reviews = soup.find_all("div", "review")
 
-    for item in reviews:
-        link = get_link(item)
-        artists = get_artists(item)
-        artwork_path = item.find("div", "review__artwork").find("img")["src"]
-        album_title = item.find("h2", "review__title-album").get_text()
-        genres = get_genres(item)
-        authors = get_authors(item)
-        review_datetime = parse(item.find("time", "pub-date")["datetime"])
-        time_difference = current_datetime- review_datetime
-        if time_difference.days > 0:
-            print(f"old review: {review_datetime}")
-            continue
+    scripts = soup.find_all("script")
+    for x in scripts:
+        text = x.get_text()
+        if re.match(pattern, text):
+            # TODO ネスト浅くする
+            text = text.replace("window.App=", "")
+            decoder = json.JSONDecoder()
+            data = decoder.raw_decode(text)[0]
+            reviews = data["context"]["dispatcher"]["stores"]["ReviewsStore"]["items"]
+            for k, review in reviews.items():
+                # print(json.dumps(review, indent=2))
 
-        formatted_revied_date = review_datetime.strftime("%B %d, %Y")
+                review_datetime = parse(review["pubDate"]).replace(tzinfo=None)
+                time_difference = current_datetime- review_datetime
+                if time_difference.days > 0:
+                    print(f"old review: {review_datetime}")
+                    continue
 
-        # detail = requests.get(link_url)
+                formatted_reviewed_date = review_datetime.strftime("%B %d, %Y")
+                
+                # albumsがarrayになっているが要素数が常に1である保証はない
+                rating = review["tombstone"]["albums"][0]["rating"]["rating"]
+                # albumsがarrayになっているが要素数が常に1である保証はない
+                artwork_url = review["tombstone"]["albums"][0]["album"]["photos"]["tout"]["sizes"]["list"]
 
-        attachments = []
-        attachment = {
-            "blocks": [
-		        {
-		        	"type": "section",
-		        	"text": {
-		        		"type": "mrkdwn",
-		        		"text": f"*{album_title}* \n*ARTIST*: {artists} \n*GENRE*: {genres}\n*REVIEWED BY*: {authors} \n*REVIEWED*: {formatted_revied_date}"
-		        	},
-		        	"accessory": {
-		        		"type": "image",
-		        		"image_url": artwork_path,
-		        		"alt_text": "alt text for image"
-		        	}
-		        },
-                {
-                    "type": "actions",
-                    "elements": [
+                labels_buff = []
+                # albumsがarrayになっているが要素数が常に1である保証はない
+                labels_and_years = review["tombstone"]["albums"][0]["labels_and_years"]
+                for i, item in enumerate(labels_and_years):
+                    for label in item["labels"]:
+                        labels_buff.append(label["display_name"])
+                labels = ", ".join(labels_buff)
+
+                artists_data = review["artists"]
+                artists_buff = []
+                for i, artist in enumerate(artists_data):
+                    artists_buff.append(artist["display_name"])
+                artists = ", ".join(artists_buff)
+                        
+                genres_data = review["genres"]
+                genres_buff = []
+                for i, genre in enumerate(genres_data):
+                    genres_buff.append(genre["display_name"])
+                genres = ", ".join(genres_buff)
+
+                link = base_url + review["url"]
+                album_title = review["seoTitle"]
+                abstract = review["seoDescription"]
+
+                authors_data = review["authors"]
+                authors_buff = []
+                for author in authors_data:
+                    authors_buff.append(author["name"])
+                authors = ", ".join(authors_buff)
+
+
+                print(artists, genres, album_title, labels, rating, formatted_reviewed_date, authors, "\n", abstract)
+
+                attachments = []
+                attachment = {
+                    "blocks": [
                         {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Go Review Page"
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": f"*{album_title}* \n*ARTIST*: {artists}\n*RATING*: `{rating}`\n*GENRE*: {genres}\n*LABEL*: {labels} \n*REVIEWED BY*: {authors} \n*REVIEWED*: {formatted_reviewed_date}\n{abstract}"
+                            },
+                            "accessory": {
+                                "type": "image",
+                                "image_url": artwork_url,
+                                "alt_text": "alt text for image"
+                            }
                         },
-                        "url": link
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Go Review Page"
+                                },
+                                "url": link
+                                }
+                            ]
                         }
                     ]
                 }
-	        ]
-        }
 
-        attachments.append(attachment)
-        slack = slackweb.Slack(url=slack_url)
-        slack.notify(attachments=attachments)
-
-def get_link(item: element.Tag):
-    link = item.find("a", "review__link")["href"]
-    link_url = base_url + link
-    return link_url
-
-def get_artists(item: element.Tag):
-    artists = item.find("ul", "review__title-artist").find_all("li")
-    artists_text = ""
-    for i, artist in enumerate(artists):
-        if i > 0:
-            artists_text = artists_text + ", "
-        artists_text = artists_text + artist.string
-
-    return artists_text
-
-def get_genres(item: element.Tag):
-    genres = item.find_all("li", "genre-list__item")
-    genre_text = ""
-    for i, genre in enumerate(genres):
-        if i > 0:
-            genre_text = genre_text + ", "
-        genre_text = genre_text + genre.string
-
-    return genre_text
-
-def get_authors(item: element.Tag):
-    authors = item.find("ul", "authors").find_all("li")
-    authors_text = ""
-    for author in authors:
-        author_name = author.find("a").get_text().replace("by: ", "")
-        authors_text = authors_text + author_name
-
-    return authors_text
+                attachments.append(attachment)
+                slack = slackweb.Slack(url=slack_url)
+                slack.notify(attachments=attachments)
         
 if __name__ == "__main__":
     main()
