@@ -75,9 +75,6 @@ def main():
                     authors_buff.append(author["name"])
                 authors = ", ".join(authors_buff)
 
-
-                print(artists, genres, album_title, labels, rating, formatted_reviewed_date, authors, "\n", abstract)
-
                 apple_music_link = get_apple_music_link()
 
                 attachments = []
