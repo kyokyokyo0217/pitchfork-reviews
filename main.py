@@ -9,7 +9,7 @@ import json
 import re
 
 config = dotenv_values(".env")
-slack_url = config["SLACK_WEBHOOK_URL"] 
+slack_url = config["SLACK_WEBHOOK_URL"]
 
 base_url = "https://pitchfork.com"
 review_list_url = base_url + "/reviews/albums/"
