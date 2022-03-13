@@ -75,7 +75,7 @@ def main():
                     authors_buff.append(author["name"])
                 authors = ", ".join(authors_buff)
 
-                apple_music_link = get_apple_music_link()
+                # apple_music_link = get_apple_music_link()
                 spotify_link = get_spotify_link()
 
                 attachments = []
@@ -106,19 +106,19 @@ def main():
                                 }
                             ]
                         },
-                        {
-                            "type": "actions",
-                            "elements": [
-                                {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Listen On Apple Music"
-                                },
-                                "url": apple_music_link
-                                }
-                            ]
-                        },
+                        # {
+                        #     "type": "actions",
+                        #     "elements": [
+                        #         {
+                        #         "type": "button",
+                        #         "text": {
+                        #             "type": "plain_text",
+                        #             "text": "Listen On Apple Music"
+                        #         },
+                        #         "url": apple_music_link
+                        #         }
+                        #     ]
+                        # },
                         {
                             "type": "actions",
                             "elements": [
