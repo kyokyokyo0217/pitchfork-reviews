@@ -76,6 +76,7 @@ def main():
                 authors = ", ".join(authors_buff)
 
                 apple_music_link = get_apple_music_link()
+                spotify_link = get_spotify_link()
 
                 attachments = []
                 attachment = {
@@ -117,6 +118,19 @@ def main():
                                 "url": apple_music_link
                                 }
                             ]
+                        },
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Listen On Spotify"
+                                },
+                                "url": spotify_link
+                                }
+                            ]
                         }
                     ]
                 }
@@ -127,6 +141,11 @@ def main():
 
 def get_apple_music_link():
     return "itmss://music.apple.com/us/album/when-we-all-fall-asleep-where-do-we-go/1450695723"
+
+def get_spotify_link():
+    # doesn't work
+    # return "spotify:album/0S0KGZnfBGSIssfF54WSJh"
+    return "https://open.spotify.com/album/0S0KGZnfBGSIssfF54WSJh"
         
 if __name__ == "__main__":
     main()
