@@ -8,8 +8,10 @@ from dateutil.parser import *
 import json
 import re
 
+import spotify
+
 config = dotenv_values(".env")
-slack_url = config["SLACK_WEBHOOK_URL"] 
+slack_url = config["SLACK_WEBHOOK_URL"]
 
 base_url = "https://pitchfork.com"
 review_list_url = base_url + "/reviews/albums/"
@@ -75,8 +77,8 @@ def main():
                     authors_buff.append(author["name"])
                 authors = ", ".join(authors_buff)
 
-
-                print(artists, genres, album_title, labels, rating, formatted_reviewed_date, authors, "\n", abstract)
+                # apple_music_link = get_apple_music_link()
+                spotify_link = get_spotify_link(album_title, artists)
 
                 attachments = []
                 attachment = {
@@ -105,6 +107,32 @@ def main():
                                 "url": link
                                 }
                             ]
+                        },
+                        # {
+                        #     "type": "actions",
+                        #     "elements": [
+                        #         {
+                        #         "type": "button",
+                        #         "text": {
+                        #             "type": "plain_text",
+                        #             "text": "Listen On Apple Music"
+                        #         },
+                        #         "url": apple_music_link
+                        #         }
+                        #     ]
+                        # },
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Listen On Spotify"
+                                },
+                                "url": spotify_link
+                                }
+                            ]
                         }
                     ]
                 }
@@ -112,6 +140,15 @@ def main():
                 attachments.append(attachment)
                 slack = slackweb.Slack(url=slack_url)
                 slack.notify(attachments=attachments)
+
+def get_apple_music_link():
+    return "itmss://music.apple.com/us/album/when-we-all-fall-asleep-where-do-we-go/1450695723"
+
+def get_spotify_link(album_title: str, artist: str):
+    # doesn't work
+    # return "spotify:album/0S0KGZnfBGSIssfF54WSJh"
+    link = spotify.main(album_title, artist)
+    return link
         
 if __name__ == "__main__":
     main()
