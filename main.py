@@ -8,7 +8,7 @@ from dateutil.parser import *
 import json
 import re
 
-import spotify
+from spotify import Spotify
 
 config = dotenv_values(".env")
 slack_url = config["SLACK_WEBHOOK_URL"]
@@ -145,9 +145,9 @@ def get_apple_music_link():
     return "itmss://music.apple.com/us/album/when-we-all-fall-asleep-where-do-we-go/1450695723"
 
 def get_spotify_link(album_title: str, artist: str):
-    # doesn't work
-    # return "spotify:album/0S0KGZnfBGSIssfF54WSJh"
-    link = spotify.main(album_title, artist)
+    spotify = Spotify()
+    spotify.authorize()
+    link = spotify.get_album_link(album_title, artist)
     return link
         
 if __name__ == "__main__":
