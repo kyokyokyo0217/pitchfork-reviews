@@ -9,7 +9,7 @@ client_id = config["SPOTIFY_CLIENT_ID"]
 client_secret = config["SPOTIFY_CLIENT_SECRET"]
 spotify_access_token_url = "https://accounts.spotify.com/api/token"
 
-def main(album_title="", artist=""):
+def main(album_title, artist):
     tmp = client_id + ":" + client_secret
     # TODO 冗長かも？binaryの勉強
     b_tmp = tmp.encode()
@@ -37,9 +37,6 @@ def main(album_title="", artist=""):
         "Content-Type": "application/json"
     }
 
-    album_title = "When We All Fall Asleep, Where Do We Go?"
-    artist = "Billie Eilish"
-
     # エスケープとか考慮してない
     # TODO artistが二人以上の場合失敗する？
     search_url = f"https://api.spotify.com/v1/search?q={album_title}+artist:{artist}&type=album"
@@ -49,19 +46,9 @@ def main(album_title="", artist=""):
         headers=headers
     )
 
-    print(json.dumps(result.json(), indent=2))
-
+    # print(json.dumps(result.json(), indent=2))
     link = result.json()["albums"]["items"][0]["external_urls"]["spotify"]
-
-    print(link)
-
     return link
-
-
-
-
-
-
 
 if __name__ == "__main__":
     main()

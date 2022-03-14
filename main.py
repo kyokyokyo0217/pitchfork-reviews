@@ -8,6 +8,8 @@ from dateutil.parser import *
 import json
 import re
 
+import spotify
+
 config = dotenv_values(".env")
 slack_url = config["SLACK_WEBHOOK_URL"]
 
@@ -76,7 +78,7 @@ def main():
                 authors = ", ".join(authors_buff)
 
                 # apple_music_link = get_apple_music_link()
-                spotify_link = get_spotify_link()
+                spotify_link = get_spotify_link(album_title, artists)
 
                 attachments = []
                 attachment = {
@@ -142,10 +144,11 @@ def main():
 def get_apple_music_link():
     return "itmss://music.apple.com/us/album/when-we-all-fall-asleep-where-do-we-go/1450695723"
 
-def get_spotify_link():
+def get_spotify_link(album_title: str, artist: str):
     # doesn't work
     # return "spotify:album/0S0KGZnfBGSIssfF54WSJh"
-    return "https://open.spotify.com/album/0S0KGZnfBGSIssfF54WSJh"
+    link = spotify.main(album_title, artist)
+    return link
         
 if __name__ == "__main__":
     main()
