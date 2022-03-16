@@ -85,7 +85,6 @@ def main():
             authors_buff.append(author["name"])
         authors = ", ".join(authors_buff)
 
-        # apple_music_link = get_apple_music_link()
         spotify_link = get_spotify_link(album_title, artists)
 
         attachments = []
@@ -116,19 +115,6 @@ def main():
                         }
                     ]
                 },
-                # {
-                #     "type": "actions",
-                #     "elements": [
-                #         {
-                #         "type": "button",
-                #         "text": {
-                #             "type": "plain_text",
-                #             "text": "Listen On Apple Music"
-                #         },
-                #         "url": apple_music_link
-                #         }
-                #     ]
-                # },
             ]
         }
 
@@ -151,9 +137,6 @@ def main():
         attachments.append(attachment)
         slack = slackweb.Slack(url=slack_url)
         slack.notify(attachments=attachments)
-
-def get_apple_music_link():
-    return "itmss://music.apple.com/us/album/when-we-all-fall-asleep-where-do-we-go/1450695723"
 
 def get_spotify_link(album_title: str, artist: str):
     spotify = Spotify()
