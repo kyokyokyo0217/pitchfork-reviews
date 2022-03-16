@@ -54,5 +54,8 @@ class Spotify():
     def get_album_link(self, album_title: str, artist: str):
         query_result = self.search_album(album_title, artist)
         # print(json.dumps(query_result.json(), indent=2))
+        if len(query_result.json()["albums"]["items"]) == 0:
+            print("could not find the album on Spotify...")
+            return ""
         link = query_result.json()["albums"]["items"][0]["external_urls"]["spotify"]
         return link
