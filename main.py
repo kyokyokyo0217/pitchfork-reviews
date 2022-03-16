@@ -55,37 +55,14 @@ def main():
         # albumsがarrayになっているが要素数が常に1である保証はない
         artwork_url = review["tombstone"]["albums"][0]["album"]["photos"]["tout"]["sizes"]["list"]
 
-        labels_buff = []
-        # albumsがarrayになっているが要素数が常に1である保証はない
-        labels_and_years = review["tombstone"]["albums"][0]["labels_and_years"]
-        for i, item in enumerate(labels_and_years):
-            for label in item["labels"]:
-                labels_buff.append(label["display_name"])
-        labels = ", ".join(labels_buff)
-
-        artists_data = review["artists"]
-        artists_buff = []
-        for i, artist in enumerate(artists_data):
-            artists_buff.append(artist["display_name"])
-        artists = ", ".join(artists_buff)
-                
-        genres_data = review["genres"]
-        genres_buff = []
-        for i, genre in enumerate(genres_data):
-            genres_buff.append(genre["display_name"])
-        genres = ", ".join(genres_buff)
+        labels = get_labels(review)
+        artists = get_artists(review)
+        genres = get_genres(review)
+        authors = get_authors(review)
 
         link = base_url + review["url"]
         album_title = review["seoTitle"]
         abstract = review["seoDescription"]
-
-        authors_data = review["authors"]
-        authors_buff = []
-        for author in authors_data:
-            authors_buff.append(author["name"])
-        authors = ", ".join(authors_buff)
-
-        spotify_link = get_spotify_link(album_title, artists)
 
         attachments = []
         attachment = {
@@ -118,6 +95,8 @@ def main():
             ]
         }
 
+        spotify_link = get_spotify_link(album_title, artists)
+
         if spotify_link != "":
             attachment["blocks"].append(
                 {
@@ -144,5 +123,39 @@ def get_spotify_link(album_title: str, artist: str):
     link = spotify.get_album_link(album_title, artist)
     return link
         
+def get_labels(review: element.Tag):
+    labels_buff = []
+    # albumsがarrayになっているが要素数が常に1である保証はない
+    labels_and_years = review["tombstone"]["albums"][0]["labels_and_years"]
+    for i, item in enumerate(labels_and_years):
+        for label in item["labels"]:
+            labels_buff.append(label["display_name"])
+    labels = ", ".join(labels_buff)
+    return labels
+
+def get_artists(review: element.Tag):
+    artists_data = review["artists"]
+    artists_buff = []
+    for i, artist in enumerate(artists_data):
+        artists_buff.append(artist["display_name"])
+    artists = ", ".join(artists_buff)
+    return artists
+
+def get_genres(review: element.Tag):
+    genres_data = review["genres"]
+    genres_buff = []
+    for i, genre in enumerate(genres_data):
+        genres_buff.append(genre["display_name"])
+    genres = ", ".join(genres_buff)
+    return genres
+
+def get_authors(review: element.Tag):
+    authors_data = review["authors"]
+    authors_buff = []
+    for author in authors_data:
+        authors_buff.append(author["name"])
+    authors = ", ".join(authors_buff)
+    return authors
+
 if __name__ == "__main__":
     main()
