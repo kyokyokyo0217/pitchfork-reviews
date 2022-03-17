@@ -20,7 +20,11 @@ pattern = r"window.App="
 
 def main():
     current_datetime = datetime.datetime.utcnow()
-    r = requests.get(review_list_url)
+    try:
+        r = requests.get(review_list_url)
+    except requests.exceptions.HTTPError as err:
+        print(err)
+
     soup = BeautifulSoup(r.text)
 
     scripts = soup.find_all("script")
@@ -114,8 +118,13 @@ def main():
                 })
 
         attachments.append(attachment)
-        slack = slackweb.Slack(url=slack_url)
-        slack.notify(attachments=attachments)
+        
+        try:
+            slack = slackweb.Slack(url=slack_url)
+            slack.notify(attachments=attachments)
+        except requests.exceptions.HTTPError as err:
+            print(err)
+            continue
 
 def get_spotify_link(album_title: str, artist: str):
     spotify = Spotify()

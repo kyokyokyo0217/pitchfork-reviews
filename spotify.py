@@ -26,11 +26,15 @@ class Spotify():
             "grant_type": "client_credentials"
         }
 
-        res = requests.post(
-            self.spotify_access_token_url,
-            headers=headers,
-            data=data
-        ).json()
+        try:
+            res = requests.post(
+                self.spotify_access_token_url,
+                headers=headers,
+                data=data
+            ).json()
+        except requests.exceptions.HTTPError as err:
+            print(err)
+            raise SystemExit(err)
 
         self.ACCESS_TOKEN = res["access_token"]
 
@@ -44,16 +48,24 @@ class Spotify():
         # TODO artistが二人以上の場合失敗する？
         search_url = f"https://api.spotify.com/v1/search?q={album_title}+artist:{artist}&type=album"
 
-        result = requests.get(
-            url=search_url,
-            headers=headers
-        )
+        try:
+            result = requests.get(
+                url=search_url,
+                headers=headers
+            )
+        except requests.exceptions.HTTPError as err:
+            print(err)
+            return None
 
         return result
 
     def get_album_link(self, album_title: str, artist: str):
         query_result = self.search_album(album_title, artist)
         # print(json.dumps(query_result.json(), indent=2))
+        if query_result is None:
+            print("error while searhcing alobum on spotify")
+            return ""
+            
         if len(query_result.json()["albums"]["items"]) == 0:
             print("could not find the album on Spotify...")
             return ""
