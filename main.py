@@ -1,3 +1,4 @@
+from platform import release
 from bs4 import BeautifulSoup
 from bs4 import element
 import requests
@@ -45,7 +46,6 @@ def main():
     reviews = data["context"]["dispatcher"]["stores"]["ReviewsStore"]["items"]
     for k, review in reviews.items():
         # print(json.dumps(review, indent=2))
-
         review_datetime = parse(review["pubDate"]).replace(tzinfo=None)
         time_difference = current_datetime- review_datetime
         if time_difference.days > 0:
@@ -58,6 +58,8 @@ def main():
         rating = review["tombstone"]["albums"][0]["rating"]["rating"]
         # albumsがarrayになっているが要素数が常に1である保証はない
         artwork_url = review["tombstone"]["albums"][0]["album"]["photos"]["tout"]["sizes"]["list"]
+        # albumsがarrayになっているが要素数が常に1である保証はない
+        release_year = review["tombstone"]["albums"][0]["album"]["release_year"]
 
         labels = get_labels(review)
         artists = get_artists(review)
@@ -75,7 +77,7 @@ def main():
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*{album_title}* \n*ARTIST*: {artists}\n*RATING*: `{rating}`\n*GENRE*: {genres}\n*LABEL*: {labels} \n*REVIEWED BY*: {authors} \n*REVIEWED*: {formatted_reviewed_date}\n{abstract}"
+                        "text": f"*{album_title}* \n*ARTIST*: {artists}\n*RATING*: `{rating}`\n*RELEASED*: `{release_year}`\n*GENRE*: {genres}\n*LABEL*: {labels} \n*REVIEWED BY*: {authors} \n*REVIEWED*: {formatted_reviewed_date}\n{abstract}"
                     },
                     "accessory": {
                         "type": "image",
